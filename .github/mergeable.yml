@@ -2,18 +2,24 @@ version: 2
 defaults:
   checks_failure_payload: &checks_failure_payload
     title: 'Mergeable Run have been Completed!'
-    summary: '### Status: {{toUpperCase validationStatus}}
-              Here are some stats of the run:
-              {{validationCount}} validations were ran.
-              {{passCount}} PASSED
-              {{failCount}} FAILED'
-    text: '{{#each validationSuites}}\n
-          #### {{{statusIcon status}}} Validator: {{toUpperCase name}}\n
-          {{#each validations }} * {{{statusIcon status}}} ***{{{ description }}}***\n
-                  Input : {{{details.input}}}\n
-                  Settings : {{{displaySettings details.settings}}}\n
-                  {{/each}}\n
-          {{/each}}'
+    summary: |
+      ### Status: {{toUpperCase validationStatus}}
+      Here are some stats of the run:
+      - {{validationCount}} validations were ran.
+      - {{passCount}} PASSED
+      - {{failCount}} FAILED
+    text: |
+      {{#each validationSuites}}
+        #### {{{statusIcon status}}} Validator: {{toUpperCase name}}
+        {{#each validations }} * {{{statusIcon status}}} **{{{ description }}}**
+          Input: {{{details.input}}}
+          <details><summary>Settings</summary>
+          ```json
+          {{{displaySettings details.settings}}}
+          ```
+          </details>
+        {{/each}}
+      {{/each}}
           
 mergeable:
   - when: pull_request.*
@@ -39,4 +45,6 @@ mergeable:
         leave_old_comment: false
       - do: comment
         payload:
-          body: 'Description is necessary and should not be empty. Kindly provide details with **what** was changed, **why** it was changed, and **how** it was changed.'
+          body: |
+            Description is necessary and should not be empty. 
+            Kindly provide details with **what** was changed, **why** it was changed, and **how** it was changed.
