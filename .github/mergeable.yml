@@ -1,7 +1,24 @@
 version: 2
+
+defaults:
+  checks_failure_payload: &checks_failure_payload
+    title: 'Mergeable Run have been Completed!'
+    summary: '### Status: {{toUpperCase validationStatus}}
+              Here are some stats of the run:
+              {{validationCount}} validations were ran.
+              {{passCount}} PASSED
+              {{failCount}} FAILED'
+    text: '{{#each validationSuites}}\n
+          #### {{{statusIcon status}}} Validator: {{toUpperCase name}}\n
+          {{#each validations }} * {{{statusIcon status}}} ***{{{ description }}}***\n
+                  Input : {{{details.input}}}\n
+                  Settings : {{{displaySettings details.settings}}}\n
+                  {{/each}}\n
+          {{/each}}'
+
 mergeable:
   - when: pull_request.*
-    name: 'WIP Check'
+    name: 'WIP Title Check'
     validate:
       - do: title
         # Do not merge when it is marked work in progress (WIP)
@@ -9,17 +26,45 @@ mergeable:
           regex: \[WIP\]|\bWIP\b|🚧
           message: This is work in progress. Do not merge yet.
 
+  - when: pull_request.*
+    name: 'Empty Description Check'
+    validate:
+      - no_empty:
+          # Do not allow empty descriptions on PR.
+          enabled: true
+          message: 'Description can not be empty.'
+    fail:
+      - do: checks
+        status: 'failure'
+        payload: *checks_failure_payload
+        leave_old_comment: false
+      - do: comment
+        payload:
+          body: 'Description is necessary and should not be empty. Kindly provide details with **what** was changed, **why** it was changed, and **how** it was changed.'
+
+  - when: pull_request.*
+    name: 'WIP Description Check'
+    fail:
+      - do: checks
+        status: 'failure'
+        payload: *checks_failure_payload
+        leave_old_comment: false
+    validate:
       # Do not allow 'DO NOT MERGE' phrase on PR's description.
       - do: description
         must_exclude:
           # Do not allow 'DO NOT MERGE' phrase on PR's description.
           regex: 'DO NOT MERGE'
           message: 'Description says that the PR should not be merged yet.'
-        no_empty:
-          # Do not allow empty descriptions on PR.
-          enabled: true
-          message: 'Description can not be empty.'
 
+  - when: pull_request.*
+    name: 'Labels Check'
+    fail:
+      - do: checks
+        status: 'failure'
+        payload: *checks_failure_payload
+        leave_old_comment: false
+    validate:
        # Do not allow PR with label 'PR: work in progress'                
       - do: label
         must_exclude:
@@ -44,26 +89,19 @@ mergeable:
       - do: label
         no_empty:
           message: PR needs to be labeled
-          enabled: true
-        
+          enabled: true   
 
-  - when: pull_request.*
-    name: Description check
-    validate:
-    - do: description
-      no_empty:
-        enabled: true
-        message: |
-          Description should not be empty. Provide details with **what** was changed, **why** it was changed, and **how** it was changed.
 
   - when: 'pull_request.*'
     name: README check
     fail:
+      - do: checks
+        status: 'failure'
+        payload: *checks_failure_payload
+        leave_old_comment: false
       - do: comment
         payload:
-          body: >
-            :warning: Please update README.md and README.yaml together.
-        leave_old_comment: false
+          body: 'Please update the README.md by running `make readme` and commit the changes.'
     validate:
     - do: dependent
       files: ['README.md', 'README.yaml']
@@ -75,22 +113,21 @@ mergeable:
         files: ['README.md']
 
   - when: pull_request.closed
-    name: 'Delete Labels on Merge'
-    validate:
-      - do: payload
-        pull_request:
-          merged: true
+    name: 'Delete Labels on PR close'
+    validate: []
     pass:
       - do: labels
-        delete: ['ok-to-test', 'ok-to-merge', 'triage', 'stale']
+        labels: ['ok-to-test', 'ok-to-merge', 'triage', 'stale']
+        mode: delete
 
   # See https://github.com/Eastwooder/source-warden/blob/f7aac2f91c09e5ee664477dc89aa285a1b60703e/mergeable-compatibility-layer/tests/all-configurable-elements-test.yaml
   - when: pull_request_review.*
     name: Approval check
     validate:
+    # Check committer is not the author. This is to prevent self-approval.
     - do: approvals
       min:
-        count: 2 # Number of minimum reviewers. In this case 2.
+        count: 1 # Number of minimum reviewers. In this case 2.
         message: 'Custom message...'
       required:
         # list of github usernames required to review
