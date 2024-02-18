@@ -41,8 +41,8 @@ mergeable:
         must_include:
           regex: 'ok-to-merge'
       - do: label
-        message: PR needs to be labeled
         no_empty:
+          message: PR needs to be labeled
           enabled: true
         
     fail:
