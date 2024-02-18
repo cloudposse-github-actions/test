@@ -1,5 +1,5 @@
 ---
-name: release-branch
+name: Release Branch
 on:
   push:
     branches:
@@ -15,6 +15,7 @@ on:
 permissions:
   contents: write
   id-token: write
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
