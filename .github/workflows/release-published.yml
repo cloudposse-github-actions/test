@@ -4,17 +4,38 @@ on:
   release:
     types:
       - published
+      
 permissions:
   contents: write
-  workflows: write
-
+  deployments: write
+  
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: cloudposse/github-action-major-release-tagger@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: tibdex/github-app-token@v2
+        id: github-app
+        with:
+          revoke: true
+          app_id: ${{ secrets.BOT_GITHUB_APP_ID }}
+          installation_id: ${{ secrets.BOT_ITHUB_APP_INSTALLATION_ID }}
+          private_key: ${{ secrets.BOT_GITHUB_APP_PRIVATE_KEY }}
+          repositories: >-
+            ["${{ github.repository }}"]
+          # To make changes to a workflow file and commit it, these repo scopes are required: 
+          # - contents:write
+          # - workflows:write
+          # - metadata:read (set automatically)
+          permissions: >-
+            {
+              "contents:": "write",
+              "workflows:": "write,
+              "metadata": "read"
+            }
       - uses: cloudposse/github-action-release-branch-manager@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.github-app.outputs.token }}
