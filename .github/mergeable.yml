@@ -33,7 +33,7 @@ mergeable:
           regex: 'wip'
       - do: label
         must_exclude:
-          regex: 'do-not-merge'
+          regex: 'duplicate|feedback|invalid|wont|progress|do-not-merge|wip'
           message: 'This PR is work in progress.'
 
   - when: pull_request.*
@@ -54,12 +54,14 @@ mergeable:
       no_empty:
         enabled: true
         message: Description should not be empty. Provide details with **what** was changed, **why** it was changed, and **how** it was changed.
+
     - do: label
+      message: Must be labeled `ok-to-merge`
       and:
       - no_empty:
           enabled: true
       - must_exclude:
-          regex: duplicate|feedback|invalid|wont|progress
+          regex: duplicate|feedback|invalid|wont|progress|do-not-merge|wip
 
     - do: dependent
       files: ['README.md', 'README.yaml']
