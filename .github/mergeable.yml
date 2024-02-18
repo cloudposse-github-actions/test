@@ -10,14 +10,18 @@ defaults:
       - {{failCount}} FAILED
     text: |
       {{#each validationSuites}}
-        #### {{{statusIcon status}}} Validator: {{toUpperCase name}}
-        {{#each validations }} * {{{statusIcon status}}} **{{{ description }}}**
-          Input: {{{details.input}}}
-          <details><summary>Settings</summary>
-          ```json
-          {{{displaySettings details.settings}}}
-          ```
-          </details>
+        > [!IMPORTANT]
+        > #### {{{statusIcon status}}} {{toUpperCase name}}
+        > {{#each validations }}
+        > {{{statusIcon status}}} **{{{ description }}}**
+        > > {{{details.input}}}
+        >   
+        > <details><summary>Settings</summary>
+        >
+        > {{{displaySettings details.settings}}}
+        > 
+        > </details>
+
         {{/each}}
       {{/each}}
           
