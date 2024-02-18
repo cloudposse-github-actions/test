@@ -1,6 +1,7 @@
 version: 2
 mergeable:
-  - when: pull_request.*, pull_request_review.*
+  - when: pull_request.*
+    name: 'WIP Check'
     validate:
       - do: title
         # Do not merge when it is marked work in progress (WIP)
@@ -53,6 +54,7 @@ mergeable:
           summary: 'PR needs to be labeled `ok-to-merge`'
 
   - when: pull_request.*
+    name: Description check
     validate:
     - do: description
       no_empty:
@@ -60,16 +62,60 @@ mergeable:
         message: |
           Description should not be empty. Provide details with **what** was changed, **why** it was changed, and **how** it was changed.
 
+  - when: 'pull_request.*'
+    name: README check
+    fail:
+      - do: comment
+        payload:
+          body: >
+            :warning: Please update README.md and README.yaml together.
+        leave_old_comment: false
+    validate:
     - do: dependent
       files: ['README.md', 'README.yaml']
       message: README.md and README.yaml must be updated together
-
-    # If package.json is updated, so should yarn.lock
+      # If README.yaml is updated, README.md must be updated too
     - do: dependent
       changed:
         file: 'README.yaml'
         files: ['README.md']
-        
+
+  - when: pull_request.closed
+    name: 'Delete Labels on Merge'
+    validate:
+      - do: payload
+        pull_request:
+          merged: true
+    pass:
+      - do: labels
+        delete: ['ok-to-test', 'ok-to-merge', 'triage', 'stale']
+
+  # See https://github.com/Eastwooder/source-warden/blob/f7aac2f91c09e5ee664477dc89aa285a1b60703e/mergeable-compatibility-layer/tests/all-configurable-elements-test.yaml
+  - when: pull_request_review.*
+    name: Approval check
+    validate:
+    - do: approvals
+      min:
+        count: 2 # Number of minimum reviewers. In this case 2.
+        message: 'Custom message...'
+      required:
+        # list of github usernames required to review
+        reviewers: 
+          - ourtestcontributor
+          - osterman
+
+        # Optional boolean. When true, the file .github/CODEOWNERS is read and owners made required reviewers
+        owners: false
+        # Optional boolean. When true, PR assignees are made required reviewers.
+        assignees: false 
+        # Optional boolean. When true, all the requested reviewer's approval is required
+        requested_reviewers: false 
+        message: 'PR review required!'
+
+
+#- when: pull_request.*
+#    name: CHANGELOG check
+#    validate:        
 #    - do: dependent
 #      changed:
 #        file: '*'
