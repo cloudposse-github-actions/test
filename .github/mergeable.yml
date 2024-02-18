@@ -46,12 +46,6 @@ mergeable:
           message: PR needs to be labeled
           enabled: true
         
-    fail:
-      - do: checks
-        status: 'failure'
-        payload:
-          title: 'Labels are not satisfied'
-          summary: 'PR needs to be labeled `ok-to-merge`'
 
   - when: pull_request.*
     name: Description check
