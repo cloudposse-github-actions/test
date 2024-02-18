@@ -27,16 +27,22 @@ defaults:
           
 mergeable:
   - when: pull_request.*
-    name: 'WIP Title Check'
+    name: 'WIP'
     validate:
       - do: title
         # Do not merge when it is marked work in progress (WIP)
         must_exclude:
           regex: \[WIP\]|\bWIP\b|🚧
           message: This is work in progress. Do not merge yet.
-          
+            # Do not allow 'DO NOT MERGE' phrase on PR's description.
+      - do: description
+        must_exclude:
+          # Do not allow 'DO NOT MERGE' phrase on PR's description.
+          regex: 'DO NOT MERGE'
+          message: 'Description says that the PR should not be merged yet.'
+
   - when: pull_request.*
-    name: 'Empty Description Check'
+    name: 'PR Metadata'
     validate:
       - do: description
         no_empty:
@@ -57,16 +63,67 @@ mergeable:
             > Kindly provide details with **what** was changed, **why** it was changed, and **how** it was changed.
 
   - when: pull_request.*
-    name: 'WIP Description Check'
+    name: 'PR Labels'
     fail:
       - do: checks
         status: 'failure'
         payload: *checks_failure_payload
         leave_old_comment: false
     validate:
-      # Do not allow 'DO NOT MERGE' phrase on PR's description.
-      - do: description
+       # Do not allow PR with label 'PR: work in progress'                
+      - do: label
         must_exclude:
-          # Do not allow 'DO NOT MERGE' phrase on PR's description.
-          regex: 'DO NOT MERGE'
-          message: 'Description says that the PR should not be merged yet.'
+          regex: 'progress|do-not-merge|wip'     
+          message: 'This PR is flagged as a work in progress.'
+      - do: label
+        must_exclude:
+          regex: 'feedback'     
+          message: 'This PR is flagged as waiting for feedback.'
+      - do: label
+        must_exclude:
+          regex: 'triage'     
+          message: 'This PR is being triaged.'                   
+      - do: label
+        must_exclude:
+          regex: 'duplicate'        
+          message: 'This PR is flagged as a duplicate.'
+      - do: label
+        must_exclude:
+          regex: 'invalid'        
+          message: 'This PR is flagged as a invalid.'  
+      - do: label
+        must_exclude:
+          regex: 'stale'        
+          message: 'This PR is flagged as stale.'                       
+      - do: label
+        must_include:
+          regex: 'ok-to-merge'
+          message: 'OK to merge' 
+      - do: label
+        no_empty:
+          message: PR needsto be triaged.
+          enabled: true   
+
+  - when: 'pull_request.*'
+    name: README
+    fail:
+      - do: checks
+        status: 'failure'
+        payload: *checks_failure_payload
+        leave_old_comment: false
+      - do: comment
+        payload:
+          body: |
+            > [!IMPORTANT]
+            > ## README out of date
+            > 
+            > Please update the README.md by running `make readme` and commit the changes.
+    validate:
+    - do: dependent
+      files: ['README.md', 'README.yaml']
+      message: README.md and README.yaml must be updated together
+      # If README.yaml is updated, README.md must be updated too
+    - do: dependent
+      changed:
+        file: 'README.yaml'
+        files: ['README.md']
