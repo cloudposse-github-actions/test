@@ -22,7 +22,7 @@ jobs:
         id: app-token
         with:
           app-id: ${{ vars.BOT_GITHUB_APP_ID }}
-          private-key: ${{ secrets.BOT_GITHUB_APP_PRIVATE_KEY.PRIVATE_KEY }}
+          private-key: ${{ secrets.BOT_GITHUB_APP_PRIVATE_KEY }}
       - uses: cloudposse/github-action-release-branch-manager@v1
         env:
           GITHUB_TOKEN: ${{ steps.github-app.outputs.token }}
