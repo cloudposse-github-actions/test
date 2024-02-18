@@ -1,21 +1,5 @@
 version: 2
 
-defaults:
-  checks_failure_payload: &checks_failure_payload
-    title: 'Mergeable Run have been Completed!'
-    summary: '### Status: {{toUpperCase validationStatus}}
-              Here are some stats of the run:
-              {{validationCount}} validations were ran.
-              {{passCount}} PASSED
-              {{failCount}} FAILED'
-    text: '{{#each validationSuites}}\n
-          #### {{{statusIcon status}}} Validator: {{toUpperCase name}}\n
-          {{#each validations }} * {{{statusIcon status}}} ***{{{ description }}}***\n
-                  Input : {{{details.input}}}\n
-                  Settings : {{{displaySettings details.settings}}}\n
-                  {{/each}}\n
-          {{/each}}'
-
 mergeable:
   - when: pull_request.*
     name: 'WIP Title Check'
@@ -25,4 +9,3 @@ mergeable:
         must_exclude:
           regex: \[WIP\]|\bWIP\b|🚧
           message: This is work in progress. Do not merge yet.
-
