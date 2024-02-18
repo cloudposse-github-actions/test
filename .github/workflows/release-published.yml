@@ -4,7 +4,7 @@ on:
   release:
     types:
       - published
-      
+
 permissions:
   contents: write
   deployments: write
@@ -13,6 +13,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment: release
+    concurrency: release
     steps:
       - uses: cloudposse/github-action-major-release-tagger@v1
         with:
