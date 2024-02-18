@@ -23,11 +23,11 @@ jobs:
         with:
           revoke: true
           app_id: ${{ vars.BOT_GITHUB_APP_ID }}
-          installation_retrieval_mode: "id"
+          installation_retrieval_mode: "organization"
           installation_retrieval_payload: ${{ vars.BOT_GITHUB_APP_INSTALLATION_ID }}
           private_key: ${{ secrets.BOT_GITHUB_APP_PRIVATE_KEY }}
-          #repositories: >-
-          #  ["${{ github.repository }}"]
+          repositories: >-
+            ["${{ github.repository }}"]
           # To make changes to a workflow file and commit it, these repo scopes are required: 
           # - contents:write
           # - workflows:write
