@@ -13,9 +13,11 @@ defaults:
         > [!IMPORTANT]
         > #### {{{statusIcon status}}} {{toUpperCase name}}
         > {{#each validations }}
-        > {{{statusIcon status}}} **{{{ description }}}**
+        > {{{statusIcon status}}} {{ description }}}
         > > {{{details.input}}}
-        >   
+        > {{#if details.error}}
+        >  **Error:** {{{details.error}}}
+        >  {{/if}}
         > <details><summary>Settings</summary>
         >
         > {{{displaySettings details.settings}}}
@@ -127,3 +129,29 @@ mergeable:
       changed:
         file: 'README.yaml'
         files: ['README.md']
+
+  - when: schedule.repository
+    name: 'Stale'
+    validate:
+      - do: stale
+        days: 20
+        type: pull_request, issues
+    pass:
+      - do: comment
+        payload:
+          body: This is old. Is it still relevant?
+
+  - when: pull_request.opened
+    name: "Greeting"
+    validate: []
+    pass:
+      - do: comment
+        payload:
+          body: >
+            Thanks for creating a pull request! 
+            A maintainer will review your changes shortly. 
+            Please don't be discouraged if it takes a while.
+
+            > [!TIP]
+            > ## Need help?
+            > Join us on [Slack](https://slack.cloudposse.com)
