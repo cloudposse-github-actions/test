@@ -36,6 +36,3 @@ mergeable:
         status: 'failure'
         payload: *checks_failure_payload
         leave_old_comment: false
-      - do: comment
-        payload:
-          body: 'Description is necessary and should not be empty. Kindly provide details with **what** was changed, **why** it was changed, and **how** it was changed.'
