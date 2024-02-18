@@ -27,10 +27,16 @@ mergeable:
   - when: pull_request.*
     name: 'Empty Description Check'
     validate:
-      - no_empty:
+      - do: description
+        no_empty:
           # Do not allow empty descriptions on PR.
           enabled: true
           message: 'Description can not be empty.'
     fail:
       - do: checks
         status: 'failure'
+        payload: *checks_failure_payload
+        leave_old_comment: false
+      - do: comment
+        payload:
+          body: 'Description is necessary and should not be empty. Kindly provide details with **what** was changed, **why** it was changed, and **how** it was changed.'
