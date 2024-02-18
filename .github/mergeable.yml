@@ -1,28 +1,49 @@
 version: 2
 defaults:
   checks_failure_payload: &checks_failure_payload
-    title: 'Mergeable Run have been Completed!'
+    title: 'PR Not Mergeable!'
     summary: |
-      ### Status: {{toUpperCase validationStatus}}
-      Here are some stats of the run:
-      - {{validationCount}} validations were ran.
-      - {{passCount}} PASSED
-      - {{failCount}} FAILED
+      > [!IMPORTANT]
+      > ### Status: {{toUpperCase validationStatus}}
+      > Here are some stats of the run:
+      > {{validationCount}} validations were ran.
+      > {{passCount}} PASSED
+      > {{failCount}} FAILED
     text: |
       {{#each validationSuites}}
+        #### {{{statusIcon status}}} {{toUpperCase name}}
+        {{#each validations }}
+        {{{statusIcon status}}} {{ description }}}
+        > {{{details.input}}}
+        {{#if details.error}}
         > [!IMPORTANT]
-        > #### {{{statusIcon status}}} {{toUpperCase name}}
-        > {{#each validations }}
-        > {{{statusIcon status}}} {{ description }}}
-        > > {{{details.input}}}
-        > {{#if details.error}}
         >  **Error:** {{{details.error}}}
-        >  {{/if}}
-        > <details><summary>Settings</summary>
-        >
-        > {{{displaySettings details.settings}}}
-        > 
-        > </details>
+        {{/if}}
+        <details><summary>Settings</summary>
+        {{{displaySettings details.settings}}} 
+        </details>
+
+        {{/each}}
+      {{/each}}
+
+  checks_success_payload: &checks_success_payload
+    title: 'All Merge Checks Have Passed!!'
+    summary: |
+      > [!TIP]
+      > ### Status: {{toUpperCase validationStatus}}
+      > Here are some stats of the run:
+      > {{validationCount}} validations were ran.
+      > {{passCount}} PASSED
+      > {{failCount}} FAILED
+    text: |
+      {{#each validationSuites}}
+        #### {{{statusIcon status}}} {{toUpperCase name}}
+        {{#each validations }}
+        {{{statusIcon status}}} {{ description }}}
+        > {{{details.input}}}
+        <details><summary>Settings</summary>
+        {{{displaySettings details.settings}}} 
+        </details>
 
         {{/each}}
       {{/each}}
@@ -42,6 +63,16 @@ mergeable:
           # Do not allow 'DO NOT MERGE' phrase on PR's description.
           regex: 'DO NOT MERGE'
           message: 'Description says that the PR should not be merged yet.'
+    pass:
+      - do: checks
+        status: 'success'
+        payload: *checks_success_payload
+        leave_old_comment: false  
+    fail:
+      - do: checks
+        status: 'failure'
+        payload: *checks_failure_payload
+        leave_old_comment: false
 
   - when: pull_request.*
     name: 'PR Metadata'
@@ -51,6 +82,11 @@ mergeable:
           # Do not allow empty descriptions on PR.
           enabled: true
           message: 'Description can not be empty.'
+    pass:
+      - do: checks
+        status: 'success'
+        payload: *checks_success_payload
+        leave_old_comment: false
     fail:
       - do: checks
         status: 'failure'
@@ -127,6 +163,11 @@ mergeable:
             > ## README out of date
             > 
             > Please update the README.md by running `make readme` and commit the changes.
+    pass:
+      - do: checks
+        status: 'success'
+        payload: *checks_success_payload
+        leave_old_comment: false
     validate:
     - do: dependent
       files: ['README.md', 'README.yaml']
@@ -147,6 +188,10 @@ mergeable:
       - do: comment
         payload:
           body: This is old. Is it still relevant?
+      - do: checks
+        status: 'success'
+        payload: *checks_success_payload
+        leave_old_comment: false
 
   - when: pull_request.*
     name: 'PR Size'
@@ -160,7 +205,12 @@ mergeable:
     fail:
       - do: labels
         add: [ 'size/M' ]
-        delete: [ 'size/S', 'size/M', 'size/L', 'size/XL' ]
+        delete: [ 'size/S', 'size/M', 'size/L', 'size/XL' ]     
+    pass:
+      - do: checks
+        status: 'success'
+        payload: *checks_success_payload
+        leave_old_comment: false        
 
   - when: pull_request.opened
     name: "Greeting"
