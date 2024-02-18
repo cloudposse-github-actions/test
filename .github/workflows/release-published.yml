@@ -22,9 +22,9 @@ jobs:
         id: github-app
         with:
           revoke: true
-          app_id: ${{ secrets.BOT_GITHUB_APP_ID }}
+          app_id: ${{ vars.BOT_GITHUB_APP_ID }}
           installation_retrieval_mode: "id"
-          installation_retrieval_payload: ${{ secrets.BOT_ITHUB_APP_INSTALLATION_ID }}
+          installation_retrieval_payload: ${{ vars.BOT_ITHUB_APP_INSTALLATION_ID }}
           private_key: ${{ secrets.BOT_GITHUB_APP_PRIVATE_KEY }}
           repositories: >-
             ["${{ github.repository }}"]
