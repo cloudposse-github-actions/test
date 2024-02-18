@@ -34,5 +34,3 @@ mergeable:
     fail:
       - do: checks
         status: 'failure'
-        payload: *checks_failure_payload
-        leave_old_comment: false
