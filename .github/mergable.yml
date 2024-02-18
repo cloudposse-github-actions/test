@@ -1,0 +1,78 @@
+version: 2
+mergeable:
+  - when: pull_request.*, pull_request_review.*
+    validate:
+      - do: title
+        # Do not merge when it is marked work in progress (WIP)
+        or:
+          - must_exclude:
+              regex: \[WIP\]|\bWIP\b|🚧
+              message: This is work in progress. Do not merge yet.
+          - must_exclude:
+              regex: ^\[DONT-MERGE\]
+              message: Do not merge this PR yet.
+
+      # Do not allow 'DO NOT MERGE' phrase on PR's description.
+      - do: description
+        must_exclude:
+          # Do not allow 'DO NOT MERGE' phrase on PR's description.
+          regex: 'DO NOT MERGE'
+          message: 'Description says that the PR should not be merged yet.'
+        no_empty:
+          # Do not allow empty descriptions on PR.
+          enabled: true
+          message: 'Description can not be empty.'
+
+       # Do not allow PR with label 'PR: work in progress'    
+      - do: label
+        must_exclude:
+          regex: 'PR: work in progress'
+          message: 'This PR is work in progress.'              
+      - do: label
+        must_exclude:
+          regex: 'wip'
+      - do: label
+        must_exclude:
+          regex: 'do-not-merge'
+          message: 'This PR is work in progress.'
+
+  - when: pull_request.*
+    validate:
+      - do: label
+        must_include:
+          regex: 'ok-to-merge'
+    fail:
+      - do: checks
+        status: 'failure'
+        payload:
+          title: 'Need an appropriate "Type:" label'
+          summary: 'Need an appropriate "Type:" label'
+
+  - when: pull_request.*
+    validate:
+    - do: description
+      no_empty:
+        enabled: true
+        message: Description should not be empty. Provide details with **what** was changed, **why** it was changed, and **how** it was changed.
+    - do: label
+      and:
+      - no_empty:
+          enabled: true
+      - must_exclude:
+          regex: duplicate|feedback|invalid|wont|progress
+
+    - do: dependent
+      files: ['README.md', 'README.yaml']
+      message: README.md and README.yaml must be updated together
+
+    # If package.json is updated, so should yarn.lock
+    - do: dependent
+      changed:
+        file: 'README.yaml'
+        files: ['README.md']
+        
+#    - do: dependent
+#      changed:
+#        file: '*'
+#        files: ['CHANGELOG.md']
+#        message: Missing CHANGELOG entry
