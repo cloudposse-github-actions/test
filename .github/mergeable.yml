@@ -101,10 +101,17 @@ mergeable:
         must_include:
           regex: 'ok-to-merge'
           message: 'OK to merge' 
+
+  - when: pull_request.*
+    name: 'Triage'
+    validate:
       - do: label
         no_empty:
-          message: PR needsto be triaged.
+          message: PR needs to be triaged.
           enabled: true   
+    fail:
+      - do: labels
+        add: [ 'triage' ]
 
   - when: 'pull_request.*'
     name: README
@@ -140,6 +147,20 @@ mergeable:
       - do: comment
         payload:
           body: This is old. Is it still relevant?
+
+  - when: pull_request.*
+    name: 'PR Size'
+    validate:
+      - do: size
+        ignore: ['README.md']
+        lines:
+          max:
+            count: 500
+            message: Change is very large. Please consider breaking it down into smaller changes.
+    fail:
+      - do: labels
+        add: [ 'size/M' ]
+        delete: [ 'size/S', 'size/M', 'size/L', 'size/XL' ]
 
   - when: pull_request.opened
     name: "Greeting"
