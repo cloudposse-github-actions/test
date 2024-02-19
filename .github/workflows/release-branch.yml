@@ -22,29 +22,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  ci-codeowners:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - uses: mszostok/codeowners-validator@v0.7.4
-        # Pull request from a fork
-        name: "Validate CODEOWNERS"
-        with:
-          checks: "syntax,duppatterns"
-          owner_checker_allow_unowned_patterns: "false"
-
-      - uses: mszostok/codeowners-validator@v0.7.4
-        # Main branch / Pull request from the same repo
-        name: "Validate CODEOWNERS"
-        with:
-          # For now, remove "files" check to allow CODEOWNERS to specify non-existent
-          # files so we can use the same CODEOWNERS file for Terraform and non-Terraform repos
-          #   checks: "files,syntax,owners,duppatterns"
-          checks: "syntax,duppatterns"
-          owner_checker_allow_unowned_patterns: "false"
-
   ci-readme:
     runs-on: ubuntu-latest
     steps:
@@ -98,7 +75,7 @@ jobs:
 
   release-controller:
     runs-on: ubuntu-latest
-    needs: [ci-readme, ci-codeowners]
+    needs: [ci-readme]
     permissions:
       # write permission is required to create a github release
       contents: write
@@ -111,37 +88,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fetch pull request for the given ref
-        id: get-pull-request
-        uses: 8BitJonny/gh-get-current-pr@2.2.0
-        with:
-          sha: ${{ github.sha }}
-
-      - name: Check duplicate
-        id: check-duplicate
-        run: |
-          latest_hash=$(git rev-parse ${{ github.ref_name }})
-          tags=$(git tag --contains "$latest_hash")
-          if [[ -n $tags ]]; then
-            echo "duplicate=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "duplicate=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Do release
-        if: steps.check-duplicate.outputs.duplicate == 'false'
+      - name: Draft release
         id: release
         uses: cloudposse/github-action-auto-release@v1
         with:
-          prerelease: ${{ contains(steps.get-pull-request.outputs.pr_labels, 'prerelease') }}
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify release  # Workaround for https://github.com/release-drafter/release-drafter/issues/1313
-        if: steps.check-duplicate.outputs.duplicate == 'false'
-        shell: bash
-        run: |
-          echo 'Checking release id not empty: "${{ steps.release.outputs.id }}"'
-          ! test -z "${{ steps.release.outputs.id }}"
 
   major-release-tagger:
     runs-on: ubuntu-latest
