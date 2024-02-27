@@ -1,0 +1,47 @@
+---
+#
+# This is the canonical configuration for the `README.md`
+# Run `make readme` to rebuild the `README.md`
+#
+
+# Name of this project
+name: test
+
+# Tags of this project
+tags:
+  - sandbox
+  - test
+
+# Logo for this project
+#logo: docs/logo.png
+
+# License of this project
+license: "APACHE2"
+
+# Canonical GitHub repo
+github_repo: cloudposse-github-actions/test
+
+# Badges to display
+badges:
+  - name: "Latest Release"
+    image: "https://img.shields.io/github/release/cloudposse-github-actions/test.svg?style=for-the-badge"
+    url: "https://github.com/cloudposse-github-actions/screenshot/releases/latest"
+  - name: "Slack Community"
+    image: "https://slack.cloudposse.com/for-the-badge.svg"
+    url: "https://slack.cloudposse.com"
+
+related: []
+
+# Short description of this project
+description: This is a test sandbox. Do not use for anything else.
+
+introduction: |-
+  We use this sandbox for testing new features and ideas. It's not intended for general use.
+
+references:
+  - name: "Cloud Posse GitHub Actions"
+    description: "A collection of all Cloud Posse managed GitHub Actions"
+    url: "https://docs.cloudposse.com/github-actions/"
+
+# Contributors to this project
+contributors: []
